@@ -1,0 +1,9 @@
+Coord origen [0,0,0,0,0,0]
+Coord P1 [0.1,0.1,0,0,0,0]
+
+MoveAng [0,0,0,0,0,0] 100 tool
+MoveAng [1.5,0,0,0,0,0] 100 tool
+MoveAng [1.5,-1,0,0,0,0] 100 tool
+MoveJ origen 100 tool usuario1
+MoveJ P1 100 tool usuario1
+MoveJ origen 50 tool usuario2

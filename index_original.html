@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+  <meta charset="utf-8" />
+  <script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+  <script src="../build/roslib.js"></script>
+  <script src="http://static.robotwebtools.org/threejs/r89/three.js"></script>
+  <script src="http://static.robotwebtools.org/threejs/r89/ColladaLoader.js"></script>
+  <script src="http://static.robotwebtools.org/ColladaAnimationCompress/current/ColladaLoader2.js"></script>
+  <script src="http://static.robotwebtools.org/threejs/r89/STLLoader.js"></script>
+  <script src="http://static.robotwebtools.org/EventEmitter2/0.4.14/eventemitter2.js"></script>
+  <script src="http://static.robotwebtools.org/roslibjs/0.20.0/roslib.js"></script>
+  <script src="https://static.robotwebtools.org/ros3djs/current/ros3d.js"></script>
+  <script src="https://code.jquery.com/jquery-2.2.4.min.js"
+    integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <script src="scripts/roslib.js"></script>
+  <script src="scripts/ros3d.js"></script>
+  <script src="scripts/jquery-3.6.0.js"></script>
+  
+  <script>
+
+    var fibonacciClient;
+    var ros;
+    var conectado = false;
+    var SistemaCoord = "1";
+    var listener;
+    var listener2;
+
+    var eje;
+    var PActual_ang;
+    var PActual_punto;
+    var Puntos;
+    var cantPuntosAnterior = 0;
+    var cantPuntosActual = 0;
+    var com;
+    var intervalo;
+    var id1_aux;
+    var id2_aux;
+    var op_aux;
+
+    // #####################################################################333333333
+    //funciones llamadas cuando se habilitan los motores en funcion "Enable_motores"
+    //funciones para habilitar y deshabilitar los botones de movimiento
+
+    function HabilitarBotones() {
+
+      document.getElementById("BtnMover").disabled = false;
+      document.getElementById("T1X+").disabled = false;
+      document.getElementById("T1X-").disabled = false;
+      document.getElementById("T2Y+").disabled = false;
+      document.getElementById("T2Y-").disabled = false;
+      document.getElementById("T3Z+").disabled = false;
+      document.getElementById("T3Z-").disabled = false;
+      document.getElementById("T4Rx+").disabled = false;
+      document.getElementById("T4Rx-").disabled = false;
+      document.getElementById("T5Ry+").disabled = false;
+      document.getElementById("T5Ry-").disabled = false;
+      document.getElementById("T6Rz+").disabled = false;
+      document.getElementById("T6Rz-").disabled = false;
+      console.log("habilitando botones");
+    }
+
+    function DeshabilitarBotones() {
+      document.getElementById("BtnMover").disabled = true;
+      document.getElementById("T1X+").disabled = true;
+      document.getElementById("T1X-").disabled = true;
+      document.getElementById("T2Y+").disabled = true;
+      document.getElementById("T2Y-").disabled = true;
+      document.getElementById("T3Z+").disabled = true;
+      document.getElementById("T3Z-").disabled = true;
+      document.getElementById("T4Rx+").disabled = true;
+      document.getElementById("T4Rx-").disabled = true;
+      document.getElementById("T5Ry+").disabled = true;
+      document.getElementById("T5Ry-").disabled = true;
+      document.getElementById("T6Rz+").disabled = true;
+      document.getElementById("T6Rz-").disabled = true;
+      console.log("deshabilitando botones");
+    }
+
+    //********** Funcion al cargar la pagina web *************************
+    function InicializarPagina() {
+
+      document.getElementById("MotoresONOFF").checked = 0;
+
+      DeshabilitarBotones();
+
+    }
+    window.onload = InicializarPagina;
+
+    //###################################################################
+    function Conectar() {
+      // Connecting to ROS
+      // -----------------
+      if (conectado) {
+        listener.unsubscribe();
+        listener2.unsubscribe();
+        ros.close();
+        conectado = false;
+
+      } else {
+        ros = new ROSLIB.Ros({
+          url: 'ws://192.168.1.195:9090'      //169.254.200.200    192.168.1.195   'ws://www.cxn2.local:9090'
+        });
+
+        var viewer = new ROS3D.Viewer({
+          divID: 'urdf',
+          width: 500,
+          height: 500,
+          antialias: true,
+          background: '#565656',
+          intensity: 0.5,
+          cameraPose: { x: 0.8, y: 0.8, z: 0.6 }
+        });
+        viewer.addObject(new ROS3D.Grid({
+          color: '#0181c4',
+          cellSize: 0.1,
+          num_cells: 10
+        }));
+
+        var tfClient = new ROSLIB.TFClient({
+          ros: ros,
+          angularThres: 0.01,
+          transThres: 0.01,
+          rate: 10.0,
+          fixedFrame: '/world'
+        });
+
+        // Setup the URDF client.
+        var urdfClient = new ROS3D.UrdfClient({
+          ros: ros,
+          tfClient: tfClient,
+          path: 'http://192.168.1.195/',              //'http://192.168.1.195/' http://169.254.200.200/
+          rootObject: viewer.scene,
+          loader: ROS3D.COLLADA_LOADER_2
+        });
+
+        var MundoNode = new ROS3D.SceneNode({
+          tfClient: tfClient,
+          frameID: '/world',
+          object: new ROS3D.Axes({ scale: 0.08, shaftRadius: 0.03, headRadius: 0.05 }),
+        });
+        viewer.scene.add(MundoNode);
+
+        var ShNode = new ROS3D.SceneNode({
+          tfClient: tfClient,
+          frameID: '/shoulder_link',
+          object: new ROS3D.Axes({ scale: 0.1, shaftRadius: 0.03, headRadius: 0.05 }),
+        });
+        viewer.scene.add(ShNode);
+
+        var ArmNode = new ROS3D.SceneNode({
+          tfClient: tfClient,
+          frameID: '/arm_link',
+          object: new ROS3D.Axes({ scale: 0.1, shaftRadius: 0.03, headRadius: 0.05 }),
+        });
+        viewer.scene.add(ArmNode);
+
+        var ElbowNode = new ROS3D.SceneNode({
+          tfClient: tfClient,
+          frameID: '/elbow_link',
+          object: new ROS3D.Axes({ scale: 0.1, shaftRadius: 0.03, headRadius: 0.05 }),
+        });
+        viewer.scene.add(ElbowNode);
+
+        var HandNode = new ROS3D.SceneNode({
+          tfClient: tfClient,
+          frameID: '/hand_link',
+          object: new ROS3D.Axes({ scale: 0.05, shaftRadius: 0.03, headRadius: 0.05 }),
+        });
+        viewer.scene.add(HandNode);
+
+        var ToolNode = new ROS3D.SceneNode({
+          tfClient: tfClient,
+          frameID: '/tool_link',
+          object: new ROS3D.Axes({ scale: 0.05, shaftRadius: 0.03, headRadius: 0.05 }),
+        });
+        viewer.scene.add(ToolNode);
+
+        var U1Node = new ROS3D.SceneNode({
+          tfClient: tfClient,
+          frameID: '/usuario1',
+          object: new ROS3D.Axes({ scale: 0.08, shaftRadius: 0.03, headRadius: 0.05 }),
+        });
+        viewer.scene.add(U1Node);
+
+        var U2Node = new ROS3D.SceneNode({
+          tfClient: tfClient,
+          frameID: '/usuario2',
+          object: new ROS3D.Axes({ scale: 0.08, shaftRadius: 0.03, headRadius: 0.05 }),
+        });
+        viewer.scene.add(U2Node);
+      }
+
+      //********* topico "robot_state" (posicion y orientacion actual)*****************************************
+      listener = new ROSLIB.Topic({
+        ros: ros,
+        name: '/niryo_one/robot_state',
+        messageType: 'niryo_one_msgs/RobotState'
+      });
+
+      listener.subscribe(function (message) {
+        //console.log(message);
+        //listener.unsubscribe();
+        PActual_punto = message;
+
+        document.getElementById("x_actual").innerHTML = message.position.x.toFixed(3);
+        document.getElementById("y_actual").innerHTML = message.position.y.toFixed(3);
+        document.getElementById("z_actual").innerHTML = message.position.z.toFixed(3);
+        document.getElementById("roll_actual").innerHTML = Rad_a_grados(message.rpy.roll).toFixed(2);
+        document.getElementById("pitch_actual").innerHTML = Rad_a_grados(message.rpy.pitch).toFixed(2);
+        document.getElementById("yaw_actual").innerHTML = Rad_a_grados(message.rpy.yaw).toFixed(2);
+
+      });
+
+
+
+      //********** topico "joints_state" (angulos actual)*****************************************
+      listener2 = new ROSLIB.Topic({
+        ros: ros,
+        name: '/joint_states',
+        messageType: 'sensor_msgs/JointState'
+      });
+
+      listener2.subscribe(function (message2) {
+        //console.log(message);
+        //listener.unsubscribe();
+        PActual_ang = message2;
+
+        document.getElementById("T1_actual").innerHTML = Rad_a_grados(message2.position[0]).toFixed(2);
+        document.getElementById("T2_actual").innerHTML = Rad_a_grados(message2.position[1]).toFixed(2);
+        document.getElementById("T3_actual").innerHTML = Rad_a_grados(message2.position[2]).toFixed(2);
+        document.getElementById("T4_actual").innerHTML = Rad_a_grados(message2.position[3]).toFixed(2);
+        document.getElementById("T5_actual").innerHTML = Rad_a_grados(message2.position[4]).toFixed(2);
+        document.getElementById("T6_actual").innerHTML = Rad_a_grados(message2.position[5]).toFixed(2);
+
+      });
+
+      //document.getElementById("T1").value = Rad_a_grados(PActual_ang.position[0]).toFixed(1);
+
+      //*************************************************************************
+      //Si hay ERROR en el back-end de ROS
+      ros.on('error', function (error) {
+        document.getElementById('connecting').style.display = 'none';
+        document.getElementById('connected').style.display = 'none';
+        document.getElementById('closed').style.display = 'none';
+        document.getElementById('error').style.display = 'inline';
+        console.log(error);
+      });
+
+      ros.on('connection', function () {
+        console.log('Connection made!');
+        document.getElementById('connecting').style.display = 'none';
+        document.getElementById('error').style.display = 'none';
+        document.getElementById('closed').style.display = 'none';
+        document.getElementById('connected').style.display = 'inline';
+        conectado = true;
+      });
+
+      ros.on('close', function () {
+        console.log('Connection closed.');
+        document.getElementById('connecting').style.display = 'none';
+        document.getElementById('connected').style.display = 'none';
+        document.getElementById('closed').style.display = 'inline';
+        conectado = false;
+      });
+    }
+
+    //###########################################################################
+    function EnviarActionClient(coord, comandoNumero) {
+
+      //************ variables para el mensaje *****************************
+
+      var positionVec3 = new ROSLIB.Vector3(null);
+      var orientation3 = new ROSLIB.Quaternion({ x: 0, y: 0, z: 0, w: 1.0 });
+
+      positionVec3.x = 0.0;
+      positionVec3.y = 0.0;
+      positionVec3.z = 0.0;
+
+      var pose3 = new ROSLIB.Pose({
+        position: positionVec3,
+        orientation: orientation3
+      });
+
+      // ActionClient*****************************************
+
+      Cliente = new ROSLIB.ActionClient({
+        ros: ros,
+        serverName: 'niryo_one/commander/robot_action',
+        actionName: 'niryo_one_msgs/RobotMoveAction'
+      });
+
+      // **************** Crer el mensaje ********************
+
+      var goal = new ROSLIB.Goal({
+        actionClient: Cliente,
+        goalMessage: {
+          cmd: {
+            cmd_type: comandoNumero,
+            joints: [coord[0], coord[1], coord[2], coord[3], coord[4], coord[5]],
+            position: {
+              x: coord[0],
+              y: coord[1],
+              z: coord[2]
+            },
+            rpy: {
+              roll: coord[3],
+              pitch: coord[4],
+              yaw: coord[5]
+            },
+            position2: {
+              x: 0.0,
+              y: 0.0,
+              z: 0.0
+            },
+            rpy2: {
+              roll: 0.0,
+              pitch: 0.0,
+              yaw: 0.0
+            },
+            shift: {
+              axis_number: 0,
+              value: 0.0
+            },
+            Trajectory: {
+              trajectory_start: {
+                joint_state: {
+                  header: {
+                    seq: 0,
+                    stamp: {
+                      secs: 0,
+                      nsecs: 0
+                    },
+                    frame_id: ''
+                  },
+                  name: [],
+                  position: [],
+                  velocity: [],
+                  effort: []
+                },
+                multi_dof_joint_state: {
+                  header: {
+                    seq: 0,
+                    stamp: {
+                      secs: 0,
+                      nsecs: 0
+                    },
+                    frame_id: ''
+                  },
+                  joint_names: [],
+                  transforms: [],
+                  twist: [],
+                  wrench: []
+                },
+                attached_collision_objects: [],
+                is_diff: false
+              },
+              group_name: '',
+              trajectory: {
+                joint_trajectory: {
+                  header: {
+                    seq: 0,
+                    stamp: {
+                      secs: 0,
+                      nsecs: 0
+                    },
+                    frame_id: ''
+                  },
+                  joint_names: [],
+                  points: []
+                },
+                multi_dof_joint_trajectory: {
+                  header: {
+                    seq: 0,
+                    stamp: {
+                      secs: 0,
+                      nsecs: 0
+                    },
+                    frame_id: ''
+                  },
+                  joint_names: [],
+                  points: []
+                }
+              }
+            },
+            pose_quat: pose3,
+            saved_position_name: '',
+            saved_trajectory_id: 0,
+            tool_cmd: {
+              tool_id: 0,
+              cmd_type: 0,
+              gripper_close_speed: 0,
+              gripper_open_speed: 0,
+              activate: false,
+              gpio: 0
+            }
+          }
+        }
+      });
+
+      //Feedback y result
+      goal.on('feedback', function (feedback) {
+        console.log('Feedback: ' + feedback.message);;
+      });
+      goal.on('result', function (result) {
+        console.log('Final Result: ' + result.message);
+      });
+
+      // Enviar mensaje al servidor
+      goal.send();
+
+    }
+
+    //################## Funcion para enviar orden de movimiento #########################
+    // De acuerdo a si el movimiento es en coordenadas Articulares o Espaciales
+    //varia el "comando" y llama al Servicio ActionClient para realizar el movimiento
+    function Mover() {
+
+      var coord = [];
+      var comando = parseInt(document.getElementById("selOrden").value);
+
+      if (comando == "1") {    //movimiento en coordenadas articulares
+        coord[0] = Grados_a_rad(parseFloat(document.getElementById("T1").value));
+        coord[1] = Grados_a_rad(parseFloat(document.getElementById("T2").value));
+        coord[2] = Grados_a_rad(parseFloat(document.getElementById("T3").value));
+        coord[3] = Grados_a_rad(parseFloat(document.getElementById("T4").value));
+        coord[4] = Grados_a_rad(parseFloat(document.getElementById("T5").value));
+        coord[5] = Grados_a_rad(parseFloat(document.getElementById("T6").value));
+
+      } else {  //movimiento en coordenadas espaciales
+        coord[0] = parseFloat(document.getElementById("X").value);
+        coord[1] = parseFloat(document.getElementById("Y").value);
+        coord[2] = parseFloat(document.getElementById("Z").value);
+        coord[3] = Grados_a_rad(parseFloat(document.getElementById("Rx").value));
+        coord[4] = Grados_a_rad(parseFloat(document.getElementById("Ry").value));
+        coord[5] = Grados_a_rad(parseFloat(document.getElementById("Rz").value));
+      }
+      console.log(coord);
+      EnviarActionClient(coord, comando);
+
+      //************ Actualizo los input de ingreso de coordenadas con la posicion actual ****************************************
+      //************* luego de realizar el movimiento **************************************************************************
+      // document.getElementById("T1").value = Rad_a_grados(parseFloat(PActual_ang.position[0]));   //PActual_ang - posicion actual  
+      // document.getElementById("T2").value = Rad_a_grados(parseFloat(PActual_ang.position[1]));   //angulos en radianes
+      // document.getElementById("T3").value = Rad_a_grados(parseFloat(PActual_ang.position[2]));
+      // document.getElementById("T4").value = Rad_a_grados(parseFloat(PActual_ang.position[3]));
+      // document.getElementById("T5").value = Rad_a_grados(parseFloat(PActual_ang.position[4]));
+      // document.getElementById("T6").value = Rad_a_grados(parseFloat(PActual_ang.position[5]));
+
+      // document.getElementById("X").value = PActual_punto.position.x.toFixed(3);
+      // document.getElementById("Y").value = PActual_punto.position.y.toFixed(3);
+      // document.getElementById("Z").value = PActual_punto.position.z.toFixed(3);
+      // document.getElementById("Rx").value = Rad_a_grados(PActual_punto.rpy.roll).toFixed(2);
+      // document.getElementById("Ry").value = Rad_a_grados(PActual_punto.rpy.pitch).toFixed(2);
+      // document.getElementById("Rz").value = Rad_a_grados(PActual_punto.rpy.yaw).toFixed(2);
+
+    }
+
+    //########### funcion para cambiar sistema de coordenadas ################################
+    function CambioSistema() {
+      SistemaCoord = document.getElementById("selSistema").value;
+      console.log(SistemaCoord);
+
+      // Calling a service
+      // -----------------
+
+      // First, we create a Service client with details of the service's name and service type.
+      var Servicio = new ROSLIB.Service({
+        ros: ros,
+        name: '/niryo_one/commander/set_reference_frame',
+        serviceType: 'niryo_one_msgs/SetString'
+      });
+
+      // Then we create a Service Request. 
+      var request = new ROSLIB.ServiceRequest({
+        value: SistemaCoord
+      });
+
+      Servicio.callService(request, function (result) {
+        console.log('ResultService: ' + result.message);
+      });
+
+    }
+
+    //################ funcion para establecer velocidad ###################################333
+    function Setear_velocidad() {
+
+      var velocidad = parseInt(document.getElementById("vel").value);
+
+      var Servicio = new ROSLIB.Service({
+        ros: ros,
+        name: '/niryo_one/commander/set_max_velocity_scaling_factor',
+        serviceType: 'niryo_one_msgs/SetInt'
+      });
+
+      // Then we create a Service Request. 
+      var request = new ROSLIB.ServiceRequest({
+        value: velocidad
+      });
+
+      Servicio.callService(request, function (result) {
+        console.log('ResultServiceVelocidad: ' + result.message);
+      });
+    }
+
+    //##################################################################################
+    //Habilitar o deshabilitar motores
+    function Enable_motores() {
+
+      var motor = document.getElementById("MotoresONOFF");
+      
+      if(motor.checked) {  //chequeo si switch ENABLE/DISABLE esta en posicion ENABLE
+
+        var opcion = confirm("¿Seguro que desea habilitar los motores?");
+        if (opcion == true) {     //ACEPTAR
+          var Hab_Des = new ROSLIB.Message({data: 1}); // topico "enable_motors" = 1
+          HabilitarBotones();
+	      }else{                    //CANCELAR
+          motor.checked = 0;
+          DeshabilitarBotones();
+        }
+
+      } else {  
+        var opcion = confirm("ATENCION ¿Seguro que desea deshabilitar los motores? \n PELIGRO DE DAÑOS EN EL ROBOT");
+        if (opcion == true) {     //ACEPTAR
+          var Hab_Des = new ROSLIB.Message({data: 0}); // topico "enable_motors" = 0
+          DeshabilitarBotones();
+	      }else{                    //CANCELAR
+          motor.checked = 1;
+          HabilitarBotones();
+        }
+        
+      }  
+      
+      var EnableMot = new ROSLIB.Topic({
+        ros : ros,
+        name : '/enable_motors',
+        messageType : 'std_msgs/Int16'
+      });
+      
+      EnableMot.publish(Hab_Des);
+    }
+
+    //#############################################################################3
+    function GuardarPunto() {
+
+      var coord = [];
+      coord[0] = parseFloat(PActual_ang.position[0]);   //PActual_ang - posicion actual  
+      coord[1] = parseFloat(PActual_ang.position[1]);   //angulos en radianes
+      coord[2] = parseFloat(PActual_ang.position[2]);
+      coord[3] = parseFloat(PActual_ang.position[3]);
+      coord[4] = parseFloat(PActual_ang.position[4]);
+      coord[5] = parseFloat(PActual_ang.position[5]);
+
+      var nombre = document.getElementById("nombrePunto").value;
+
+      ServicioPuntos(2, coord, nombre); //comando = 2 es para crear punto
+    }
+
+    //##################################################################
+    function ServicioPuntos(comando, coord, nombre_punto) {
+
+      var Servicio = new ROSLIB.Service({
+        ros: ros,
+        name: '/niryo_one/position/manage_position',
+        serviceType: 'niryo_one_msgs/ManagePosition'
+      });
+
+      var orient = new ROSLIB.Quaternion({ x: 0, y: 0, z: 0, w: 1.0 });
+
+      // Then we create a Service Request. 
+      var request = new ROSLIB.ServiceRequest({
+        cmd_type: comando,
+        position_name: nombre_punto,
+        position: {
+          name: nombre_punto,
+          joints: [coord[0], coord[1], coord[2], coord[3], coord[4], coord[5]],
+          rpy: {
+            roll: 0.0,
+            pitch: 0.0,
+            yaw: 0.0
+          },
+          point: {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0
+          },
+          quaternion: orient
+        }
+      });
+
+      com = comando;
+
+      Servicio.callService(request, function (result) {
+
+        console.log('mensaje; ' + result.message);
+        //console.log('punto; ' + result.position.joints);
+
+        if (com == "1") { //si el comando = 1 estamos visualizando un punto
+          document.getElementById("T1").value = Rad_a_grados(result.position.joints[0]).toFixed(2);
+          document.getElementById("T2").value = Rad_a_grados(result.position.joints[1]).toFixed(2);
+          document.getElementById("T3").value = Rad_a_grados(result.position.joints[2]).toFixed(2);
+          document.getElementById("T4").value = Rad_a_grados(result.position.joints[3]).toFixed(2);
+          document.getElementById("T5").value = Rad_a_grados(result.position.joints[4]).toFixed(2);
+          document.getElementById("T6").value = Rad_a_grados(result.position.joints[5]).toFixed(2);
+          document.getElementById("X").value = result.position.point.x.toFixed(3);
+          document.getElementById("Y").value = result.position.point.y.toFixed(3);
+          document.getElementById("Z").value = result.position.point.z.toFixed(3);
+          document.getElementById("Rx").value = Rad_a_grados(result.position.rpy.roll).toFixed(2);
+          document.getElementById("Ry").value = Rad_a_grados(result.position.rpy.pitch).toFixed(2);
+          document.getElementById("Rz").value = Rad_a_grados(result.position.rpy.yaw).toFixed(2);
+        }
+      });
+    }
+
+    //-###############################################################################
+    function ActualizarListaPuntos() {
+
+      var Servicio = new ROSLIB.Service({
+        ros: ros,
+        name: '/niryo_one/position/get_position_list',
+        serviceType: 'niryo_one_msgs/GetPositionList'
+      });
+
+      var request = new ROSLIB.ServiceRequest({});
+
+      Servicio.callService(request, function (result) {
+
+        Puntos = result.positions;
+
+        var listaPuntos = document.getElementById("selPunto");
+
+        for (let i = listaPuntos.options.length; i >= 0; i--) {
+          listaPuntos.remove(i);
+        }
+
+        for (let index = 0; index < Puntos.length; index++) {
+          var option = document.createElement("option");
+          option.text = Puntos[index].name;
+          listaPuntos.add(option);
+        }
+
+      });
+    }
+
+    //#############################################################3
+    function VerPunto() {
+      var nombre = document.getElementById("selPunto").value;
+      var coord = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+      ServicioPuntos(1, coord, nombre); //comando = 1 es para leer un punto
+    }
+
+    //#############################################################3
+    function Grados_a_rad(grados) {
+      return (grados * Math.PI) / 180;
+    }
+
+    function Rad_a_grados(radianes) {
+      return (radianes * 180) / Math.PI;
+    }
+
+    //########################################################################################
+    //Aparecer o desaparecer control manual o programacion textual
+    function Prog_textual() {
+      document.getElementById('control_manual').style.display = 'none';
+      document.getElementById('prog_textual').style.display = 'block';
+    }
+
+    function Control_manual() {
+      document.getElementById('control_manual').style.display = 'block';
+      document.getElementById('prog_textual').style.display = 'none';
+    }
+    
+    //############################################################################################
+    //funcion llamada al recibir un clik en un boton de incremento o decremento de coordenadas
+    //id1, id2, op estan explicadas en funcion Inc_Dec_Coord()
+    function cambiarValor(id1, id2, op){
+      id1_aux = id1;
+      id2_aux = id2;
+      op_aux = op;
+
+      intervalo = setInterval(function() {
+        Inc_Dec_Coord(id1_aux, id2_aux, op_aux);
+      }, 100);   
+    }
+
+    //función que se ejecuta al soltar el boton, para cancelar repetición de setInterval
+    //utilizada en funcion cambiarValor()
+    function soltarBoton() {
+      clearInterval(intervalo);
+      Mover();
+    }
+
+    //###############################################################################################
+    //funcion para los botones de incremento y decremento de coordenadas 
+    //Esta funcion es llamada desde cambiarValor(id1,id2,op)
+    //id_art: indica el ID del input de coordenada ARTICULAR a modificar
+    //id_esp: indica el ID del input de coordenada ESPACIAL a modificar
+    //operación: indica la operación a realizar, "+"" incremento, "-" decremento
+    function Inc_Dec_Coord(id_art, id_esp, operacion){
+      
+      var orden = parseInt(document.getElementById("selOrden").value);
+      
+      if (orden=='1') {                   //leer input de coordenadas articulares
+        var numero=$('#'+id_art).val();
+        if(operacion=='+' ){ 
+          numero++;
+        }else{
+          numero--;
+        }
+      }else{                              //leer input de coordenadas espaciales
+        var numero=$('#'+id_esp).val();
+        if (id_esp == 'X' || id_esp == 'Y' || id_esp == 'Z') {    //Para coordenada X Y o Z en metros
+          if(operacion=='+' ){ 
+            numero = parseFloat(parseFloat(numero) + 0.001).toFixed(3);                   //aumenta de 0.001m = 1mm
+          }else{
+            numero = parseFloat(parseFloat(numero) - 0.001).toFixed(3);                               //disminuye de 0.001m  = 1mm
+          }
+        } else {                      //En cambio para coordenadas Rx Ry Rz en grados
+          if(operacion=='+' ){ 
+            numero++;                   //aumenta de 1 grado
+          }else{
+            numero--;                  //disminuye de 1 grado
+          }
+        }
+      }
+      
+      if (orden=='1') {             //modificar cordenadas articulares
+        $('#'+id_art).val(numero);
+      }else{                        //modificar cordenadas espaciales
+        $('#'+id_esp).val(numero);
+      }
+    }
+   
+   
+    //#################################################################################################
+    function leerArchivo() {
+
+      let area = document.getElementById('campotexto');
+      area.value = "";
+
+      fetch('/ejemploComandos.txt')
+        .then(res => res.text())
+        .then(content => {
+         let lines = content.split(/\n/);
+          lines.forEach(line => area.value += line + '\n');
+        });
+
+
+      //var TXT_URL1 = 'http://localhost/ejemploComandos.txt';
+      //var TXT_URL2 = $("#input-url").val();
+
+      // $.ajaxSetup({ cache: false });
+
+      // $.ajax
+      // (
+      //   {
+      //     url : TXT_URL2,
+      //     dataType: "text",
+      //     async:false,
+      //     cache:false,
+      //     success : function (data) 
+      //     {
+      //         $(".campo").html(data);
+      //     }
+      //   }
+      // );
+    }
+      
+    //##################################################################
+    function ServicioSecuencia(comando, sec_id) {
+
+      var ServicioSec= new ROSLIB.Service({
+        ros: ros,
+        name: '/niryo_one/sequences/manage_sequence',
+        serviceType: 'niryo_one_msgs/ManageSequence'
+      });
+
+
+      // Then we create a Service Request. 
+      var request = new ROSLIB.ServiceRequest({
+        cmd_type: comando,
+        sequence_id: sec_id,
+        sequence: {
+          id: 0, name: '', 
+          description: '', 
+          created: 0, 
+          updated: 0, 
+          blockly_xml: '',
+          python_code: ''
+        }
+      });
+
+      com = comando;
+
+      ServicioSec.callService(request, function (result) {
+
+        console.log('mensaje: ' + result.message);
+        console.log('python_code: ' + result.sequence.python_code);
+
+        if (com=='1') {
+          document.getElementById("campotexto").value=result.sequence.python_code;
+        }
+
+      });
+    }
+
+    //#########################################################3
+    function VerTarea() {
+      ServicioSecuencia(1,1);
+    }
+
+    
+
+    //###########################################################################
+    function ActionClientSecuencia(sec_id) {
+
+      // ActionClient*****************************************
+
+      Cliente = new ROSLIB.ActionClient({
+        ros: ros,
+        serverName: 'niryo_one/sequences/execute',
+        actionName: 'niryo_one_msgs/SequenceAction'
+      });
+
+      // **************** Crer el mensaje ********************
+
+      var goal = new ROSLIB.Goal({
+        actionClient: Cliente,
+        goalMessage: {
+          cmd_type: 3,
+          sequence_id: sec_id,
+          sequence: {id: 0, name: '', description: '', created: 0, updated: 0, blockly_xml: '',
+          python_code: ''}
+        }
+      });
+
+      //Feedback y result
+      goal.on('feedback', function (feedback) {
+        console.log('Feedback: ' + feedback.message);;
+      });
+      goal.on('result', function (result) {
+        console.log('Final Result: ' + result.message);
+      });
+
+      // Enviar mensaje al servidor
+      goal.send();
+
+    }
+
+    //##########################################################
+    function EjecutarTarea() {
+      ActionClientSecuencia(1);
+    }
+
+  </script>
+
+  <style>
+    .contenedor {
+      background-color: rgb(229, 236, 238);
+      float: left;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+    }
+
+    .divSelectores {
+      text-align: center;
+      margin-left: 10px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .myDiv {
+      border: 5px outset blue;
+      background-color: rgb(20, 156, 201);
+      text-align: center;
+      float: left;
+      width: 500px;
+      height: 600px;
+    }
+
+    .divControl {
+      border: none;
+      background-color: rgb(20, 156, 201);
+      text-align: center;
+      float: left;
+      width: 500px;
+      height: 600px;
+    }
+
+    .divPosicionActual {
+      border: 5px outset rgb(231, 102, 15);
+      background-color: rgb(207, 140, 113);
+      text-align: center;
+      float: left;
+      width: 200px;
+      height: 600px;
+    }
+
+    .divValores {
+      border: 2px outset blue;
+      text-align: center;
+      float: left;
+      margin-left: 10px;
+      margin-bottom: 10px;
+      width: 150px;
+      height: 320px;
+      
+    }
+
+    .divBotonesIncDec {
+      border: none;
+      float: left;
+      width: 150px;
+      height: 320px;
+      margin-left: 10px;
+    } 
+
+    .divBotonMover {
+      border:2px outset blue;
+      background-color: rgb(20, 156, 201);
+      text-align: center;
+      float: left;
+      margin-left: 10px;
+      margin-right: 10px;
+      width: 470px;
+      height: 50px;
+    }
+
+
+    .divPunto {
+      border: 2px outset blue;
+      text-align: center;
+      float: left;
+      margin-left: 10px;
+      margin-right: 10px;
+      margin-top: 10px;
+      width: 470px;
+    }
+
+    .BotonMover {
+      text-align: center;
+      width: 130px;
+      height: 30px;
+      background-color: rgb(53, 20, 201);
+      color: cornsilk;
+    }
+
+    .BotonIncDec {
+      text-align: center;
+      width: 70px;
+      height: 30px;
+      background-color: rgb(53, 20, 201);
+      color: cornsilk;
+      margin-top: 15px;
+    }
+
+    .divEstadoInfo {
+      border: 2px outset blue;
+      text-align: center;
+      margin-left: 10px;
+      width: 480px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    input[type="number"] {
+      -webkit-appearance: textfield;
+      margin: 0;
+      -moz-appearance: textfield;
+    }
+
+    /* The switch - the box around the slider */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    /* Hide default HTML checkbox */
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    /* The slider */
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    input:checked + .slider {
+      background-color: #87ca0a;
+    }
+
+    input:focus + .slider {
+      box-shadow: 0 0 1px #21f380;
+    }
+
+    input:checked + .slider:before {
+      -webkit-transform: translateX(26px);
+      -ms-transform: translateX(26px);
+      transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+      border-radius: 34px;
+    }
+
+    .slider.round:before {
+      border-radius: 50%;
+    } 
+  </style>
+</head>
+
+<body>
+  <h2>Control Web Robot CXN-II (LABME FICA)</h2>
+  <input type="button" value="PROGRAMACION TEXTUAL" onclick="Prog_textual()">
+  <input type="button" value="CONTROL MANUAL" onclick="Control_manual()">
+
+  <div class="contenedor">
+
+    <div class="divControl">
+      <div class="myDiv" id="control_manual">
+        <div class="divSelectores">
+          <select id="selOrden">
+            <option value="1">Coordenadas Articulares</option>
+            <option value="2">Coordenadas Espaciales</option>
+          </select>
+          <select id="selSistema" onchange="CambioSistema()">
+            <option value="base_link">Sistema World</option>
+            <option value="usuario1">Sistema Usuario 1</option>
+            <option value="usuario2">Sistema Usuario 2</option>
+          </select>
+        </div>
+        
+        <div class="divValores">
+          <p>Articulares (°)</p>
+          <p>Tita 1: <input type="number" style="width: 60px" min="-175" max="175" value="0.0" id="T1"></p>
+          <p>Tita 2: <input type="number" style="width: 60px" min="-90" max="36" value="36.6" id="T2"></p>
+          <p>Tita 3: <input type="number" style="width: 60px" min="-80" max="90" value="-80" id="T3"></p>
+          <p>Tita 4: <input type="number" style="width: 60px" min="-175" max="175" value="0.0" id="T4"></p>
+          <p>Tita 5: <input type="number" style="width: 60px" min="-100" max="110" value="0.0" id="T5"></p>
+          <p>Tita 6: <input type="number" style="width: 60px" min="-147" max="147" value="0.0" id="T6"></p>
+        </div>
+
+        <div class="divValores">
+          <p>Espaciales (m / °)</p>
+          <p>X: <input type="number" style="width: 60px" value="0.0" id="X"></p>
+          <p>Y: <input type="number" style="width: 60px" value="0.0" id="Y"></p>
+          <p>Z: <input type="number" style="width: 60px" value="0.0" id="Z"></p>
+          <p>Rx: <input type="number" style="width: 60px" value="0.0" id="Rx"></p>
+          <p>Ry: <input type="number" style="width: 60px" value="0.0" id="Ry"></p>
+          <p>Rz: <input type="number" style="width: 60px" value="0.0" id="Rz"></p>
+        </div>
+
+        <div class="divBotonesIncDec">
+          <br><br>
+          <input id="T1X-" class="BotonIncDec" type="button" value="-T1/-X" onmousedown="cambiarValor('T1','X','-')" onmouseup="soltarBoton()">
+          <input id="T1X+" class="BotonIncDec" type="button" value="+T1/+X" onmousedown="cambiarValor('T1','X','+')" onmouseup="soltarBoton()"><br>
+          <input id="T2Y-" class="BotonIncDec" type="button" value="-T2/-Y" onmousedown="cambiarValor('T2','Y','-')" onmouseup="soltarBoton()">
+          <input id="T2Y+" class="BotonIncDec" type="button" value="+T2/+Y" onmousedown="cambiarValor('T2','Y','+')" onmouseup="soltarBoton()"><br>
+          <input id="T3Z-" class="BotonIncDec" type="button" value="-T3/-Z" onmousedown="cambiarValor('T3','Z','-')" onmouseup="soltarBoton()">
+          <input id="T3Z+" class="BotonIncDec" type="button" value="+T3/+Z" onmousedown="cambiarValor('T3','Z','+')" onmouseup="soltarBoton()"><br>
+          <input id="T4Rx-" class="BotonIncDec" type="button" value="-T4/-Rx" onmousedown="cambiarValor('T4','Rx','-')" onmouseup="soltarBoton()">
+          <input id="T4Rx+" class="BotonIncDec" type="button" value="+T4/+Rx" onmousedown="cambiarValor('T4','Rx','+')" onmouseup="soltarBoton()"><br>
+          <input id="T5Ry-" class="BotonIncDec" type="button" value="-T5/-Ry" onmousedown="cambiarValor('T5','Ry','-')" onmouseup="soltarBoton()">
+          <input id="T5Ry+" class="BotonIncDec" type="button" value="+T5/+Ry" onmousedown="cambiarValor('T5','Ry','+')" onmouseup="soltarBoton()"><br>
+          <input id="T6Rz-" class="BotonIncDec" type="button" value="-T6/-Rz" onmousedown="cambiarValor('T6','Rz','-')" onmouseup="soltarBoton()">
+          <input id="T6Rz+" class="BotonIncDec" type="button" value="+T6/+Rz" onmousedown="cambiarValor('T6','Rz','+')" onmouseup="soltarBoton()">
+        </div>
+        
+        <div class="divBotonMover">
+          <input id="BtnMover" class="BotonMover" type="button" value="Mover Robot" onclick="Mover()">
+          Velocidad: <input id="vel" type="number" value="100" min="1" max="100" style="width: 50px" onchange="Setear_velocidad()"> %
+          <label class="switch">
+            <input type="checkbox" id="MotoresONOFF" onclick="Enable_motores()">
+            <span class="slider round"></span>
+          </label>
+          Motores
+        </div>
+        
+        <div class="divPunto">
+          <p>
+            Nombre del Punto: <br>
+            <input type="text" id="nombrePunto" style="width: 150px; ">
+            <input type="button" value="Guardar Punto" onclick="GuardarPunto()">
+            </br>
+            <select id="selPunto" style="width: 150px;  margin-left: 30px">
+            </select>
+            <input type="button" value="Actualizar Lista" onclick="ActualizarListaPuntos()">
+            <input type="button" value="Ver Punto" onclick="VerPunto()">
+          </p>
+        </div>
+        
+      </div>
+
+      <div class="myDiv" id="prog_textual"  style="display: none;">
+
+        <!--<form method="post" action="prog_textual.php">
+          <input type="submit" name="BotonLeer" value="BotonLeer">
+          <input type="submit" name="BotonEjecutar" value="BotonEjecutar">
+        </form> -->
+  
+        <!-- Ingrese una url válida:<input type="text" id="input-url" size="50" value="http://169.254.200.200/ejemploComandos.txt"></input> 
+        <input type="button" id="BotonLeer" value="LEER" onclick="leerArchivo()"></input>-->
+        <textarea id="campotexto" spellcheck="false" rows="20" cols="100" style="font-size:medium;"></textarea>
+        <p>
+          Nombre de la Tarea: <br>
+          <input type="text" id="nombreTarea" style="width: 150px; ">
+          <input type="button" value="Guardar Tarea" onclick="GuardarTarea()">
+          </br>
+          <select id="selTarea" style="width: 150px;  margin-left: 30px">
+          </select>
+          <input type="button" value="Actualizar" onclick="ActualizarListaTareas()">
+          <input type="button" value="Ver Tarea" onclick="VerTarea()"></br>
+          <input type="button" value="EJECUTAR" onclick="EjecutarTarea()" style="width: 150px; height: 40px;  ">
+        </p>
+      </div>
+
+    </div>
+
+    <div id="simulacion" class="myDiv">
+      <div id="EstadoInfo" class="divEstadoInfo">
+        <div id="statusIndicator">
+          <p id="connecting">
+            Esperando conexión con ROS...
+          </p>
+          <p id="connected" style="color:rgb(51, 35, 143); display:none">
+            CONECTADO
+          </p>
+          <p id="error" style="color:#FF0000; display:none">
+            ERROR
+          </p>
+          <p id="closed" style="display:none">
+            CONEXIÓN CERRADA
+          </p>
+          <input type="button" value="CONECTAR" onclick="Conectar()">
+        </div>
+      </div>
+      <div id="urdf"></div>
+    </div>
+
+    <div id="posActual" class="divPosicionActual">
+      <p> Posición Actual </p>
+      <p> Sistema World </p>
+      <p>X(m): <label id="x_actual">0.00</label></p>
+      <p>Y(m): <label id="y_actual">0.00</label></p>
+      <p>Z(m): <label id="z_actual">0.00</label></p>
+      <p>roll(°): <label id="roll_actual">0.00</label></p>
+      <p>Pitch(°): <label id="pitch_actual">0.00</label></p>
+      <p>Yaw(°): <label id="yaw_actual">0.00</label></p>
+      <p>Coord. Articulares</p>
+      <p>T1(°): <label id="T1_actual">0.00</label></p>
+      <p>T2(°): <label id="T2_actual">0.00</label></p>
+      <p>T3(°): <label id="T3_actual">0.00</label></p>
+      <p>T4(°): <label id="T4_actual">0.00</label></p>
+      <p>T5(°): <label id="T5_actual">0.00</label></p>
+      <p>T6(°): <label id="T6_actual">0.00</label></p>
+    </div>
+  </div>
+
+</body>
+
+</html>

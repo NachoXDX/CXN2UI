@@ -1,0 +1,930 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="Blockly/blockly_compressed.js"></script>
+	<script src="Blockly/blocks_compressed.js"></script>
+	<script src="Blockly/javascript_compressed.js"></script>
+	<script src="Blockly/python_compressed.js"></script>
+	<script src="Blockly/es.js"></script>
+	<script src="Blockly/Funciones.js"></script>
+	<script src="Blockly/niryo_one_python_generators.js"></script>
+	<script src="http://static.robotwebtools.org/roslibjs/0.20.0/roslib.js"></script>
+  <script src="/ace-builds-master/src-noconflict/ace.js"></script>
+  <script src="/ace-builds-master/src-noconflict/ext-language_tools.js"></script>
+  	<link rel="stylesheet" href="styles/index.css">
+    
+    
+    <title>Document</title>
+</head>
+<body>
+  <div id="pop-up-div">
+    <div id="pop-up-top">
+        <h3 id="pop-up-h">Error 202</h3>
+        <button id="pop-up-close-btn">X</button>
+    </div>
+    <p id="pop-up-p">Motores off</p>
+</div>
+  <div id="header-div">
+      <div id="header-logo-div">CXN</div>
+      <div id="header-noti-div">
+          
+      </div>
+      <div id="header-info-div">
+            <div id="left-info">
+            <div>
+                <span>Motores: </span>
+                <span id="motor-info">ON</span>
+            </div>
+            <div>
+                <span>Modo: </span>
+                <span id="mode-info">Manual</span>
+            </div>
+        </div>
+        <div id="rigth-info">
+            <div>
+                <span >Sistema: </span>
+                <span id="reference-info">World</span>
+
+            </div>
+            <div>
+                <span>Velocidad: </span>
+                <span id="speed-info">70%</span>
+
+            </div>
+        </div>    
+      </div>
+      <div id="header-close-div"></div>
+  </div>
+  <div id="main-div">
+    <div id="nav-div">
+        <div id="nav-jogging-div" class="nav-elements">
+        <img src="imagenes/jogging-2.png" alt="" id ="jogging-img" class="nav-img">
+    </div>
+    <div id="nav-user-div" class="nav-elements">
+        <img src="imagenes/user.png" alt="" id ="user-img" class="nav-img">
+    </div>
+    <div id="nav-settings-div" class="nav-elements">
+        <img src="imagenes/settings.png" alt="" id ="settings-img" class="nav-img">
+    </div>
+    <div id="nav-tools-div" class="nav-elements">
+        <img src="imagenes/tools.png" alt="" id ="tools-img" class="nav-img">
+    </div>
+    <div id="nav-home-div" class="nav-elements"> 
+        <img src="imagenes/home.png" alt="" id ="home-img" class="nav-img">
+    </div>
+    </div>
+    <div id="jogging-div">
+
+        <div id="jogging-setup-div">
+            <select name="coordenadas" id="coordenadas-select">
+            <option value="espaciales">Espaciales</option>
+            <option selected value="articulares">Articulares</option>
+            </select>
+
+            <select name="usuario" id="usuario-select">
+                <option selected value="base_link">World</option>
+                <option value="usuario1">Usuario 1</option>
+                <option value="usuario2">Usuario 2</option>
+            </select>
+
+            <select name="tool" id="tool-select">
+                <option selected value="tool1">Herramienta 1</option>
+                <option value="tool1">Herramienta 2</option>
+            </select>
+
+            <select name="speed" id="speed-select">
+                <option value="50">50%</option>
+                <option value="60">60%</option>
+                <option selected value="70">70%</option>
+                <option value="80">80%</option>
+                <option value="90">90%</option>
+                <option value="100">100%</option>
+            </select>            
+        </div>            
+            
+            <div id="jogging-content">
+                <div id="jogging-content-move">
+                    <div id="move-1-div" class="move-div">
+                        <span id="span-1">1</span>
+                        <span id="go-to-span-1">0</span>
+                        <button id="decrement-btn-1">-</button>
+                        <span id="span-lower-limit-1">-90º</span>
+                        <input type="range" step="0.001" min="-90" max="90" value="10" class="slide" id="range-1">
+                        <span id="span-upper-limit-1">90º</span>
+                        <button id="increment-btn-1">+</button>
+                        
+                    </div>
+                    <div id="move-2-div" class="move-div">
+                        <span id="span-2">2</span>
+                        <span id="go-to-span-2">0</span>
+                        <button id="decrement-btn-2">-</button>
+                        <span id="span-lower-limit-2">-90º</span>
+                        <input type="range" step="0.001" min="-90" max="90" value="10" class="slide" id="range-2">
+                        <span id="span-upper-limit-2">90º</span>
+                        <button id="increment-btn-2">+</button>
+                        
+                    </div>
+                    <div id="move-3-div" class="move-div">
+                        <span id="span-3">3</span>
+                        <span id="go-to-span-3">0</span>
+                        <button id="decrement-btn-3">-</button>
+                        <span id="span-lower-limit-3">-90º</span>
+                        <input type="range" step="0.001" min="-90" max="90" value="10" class="slide" id="range-3">
+                        <span id="span-upper-limit-3">90º</span>
+                        <button id="increment-btn-3">+</button>
+                        
+                    </div>
+                    <div id="move-4-div" class="move-div">
+                        <span id="span-4">4</span>
+                        <span id="go-to-span-4">0</span>
+                        <button id="decrement-btn-4">-</button>
+                        <span id="span-lower-limit-4">-90º</span>
+                        <input type="range" step="0.001" min="-90" max="90" value="10" class="slide" id="range-4">
+                        <span id="span-upper-limit-4">90º</span>
+                        <button id="increment-btn-4">+</button>
+                        
+                    </div>
+                    <div id="move-5-div" class="move-div">
+                        <span id="span-5">5</span>
+                        <span id="go-to-span-5">0</span>
+                        <button id="decrement-btn-5">-</button>
+                        <span id="span-lower-limit-5">-90º</span>
+                        <input type="range" step="0.001" min="-90" max="90" value="10" class="slide" id="range-5">
+                        <span id="span-upper-limit-5">90º</span>
+                        <button id="increment-btn-5">+</button>
+                        
+                    </div>
+                    <div id="move-6-div" class="move-div">
+                        <span id="span-6">6</span>
+                        <span id="go-to-span-6">0</span>
+                        <button id="decrement-btn-6">-</button>
+                        <span id="span-lower-limit-6">-90º</span>
+                        <input type="range" step="0.001" min="-90" max="90" value="10" class="slide" id="range-6">
+                        <span id="span-upper-limit-6">90º</span>
+                        <button id="increment-btn-6">+</button>
+                        
+                    </div>
+                    <div id="buttons-div">
+                        <button class="bottom-btn" id="anadir-punto-blockly-btn">Anadir Punto</button>
+                        <div class="tool-range-div">
+                          <p>Herramienta</p>
+                          <input type="range" step="1" min="0" max="100" value="50" class="tool-range" id="gripper-range">
+                        </div>
+                        
+                        <button class="bottom-btn" id="enable-btn">Enable</button>
+                    </div>
+                </div>
+                <div id="jogging-content-position">
+                    
+                <p class="position-p"><span id="coord-name-1-span">1:</span> <span id="actual-position-1">valor</span></p>    
+                <p class="position-p"><span id="coord-name-2-span">2:</span> <span id="actual-position-2">valor</span></p>
+                <p class="position-p"><span id="coord-name-3-span">3:</span> <span id="actual-position-3">valor</span></p>
+                <p class="position-p"><span id="coord-name-4-span">4:</span> <span id="actual-position-4">valor</span></p>
+                <p class="position-p"><span id="coord-name-5-span">5:</span> <span id="actual-position-5">valor</span></p>
+                <p class="position-p"><span id="coord-name-6-span">6:</span> <span id="actual-position-6">valor</span></p>
+                <h3 id="position-h3">Posicion</h3>
+                </div>
+            </div>
+        </div>
+    <div id="home-div">
+          <div id="block-title-div">
+            <h3 id="block-title-h3">Nueva Tarea</h3>
+          </div>
+            <div id="coding-div" >
+              <div id="DivBlockly" style="height: 100%; width: 70%;" ></div>
+              <div id="mostrar-codigo-div">
+                <textarea id="CodigoResultante" ></textarea>
+              </div>
+            </div>
+            <div id="coding-buttons-div">
+        <button id="block-new-task-btn" class="block-bottom-btn">Nuevo</button>
+        <button id="block-save-task-btn" class="block-bottom-btn">Guardar</button>
+        <button id="block-delete-task-btn" class="block-bottom-btn">Borrar</button>
+        <button id="block-open-task-btn" class="block-bottom-btn">Abrir</button>
+        <button id="block-run-task-btn" class="block-bottom-btn">Ejecutar</button>
+        <button id="block-stop-task-btn" class="block-bottom-btn">Parar</button>
+            <div id="block-save-div">
+              <button id="block-save-close-btn" class="block-close-btn">X</button>
+                <button id="block-save-as-task-btn" class="block-save-btn">Guardar Como</button>
+                <button id="block-overwrite-task-btn" class="block-save-btn">Guardar</button>
+                
+            </div>
+            <div id="block-save-as-task-div">
+                
+                <input type="text" name=""  placeholder="Nombre" id="block-save-task-name" class="block-save-task-input">
+                <input type="text" name="" placeholder="Descripcion" id="block-save-task-description" class="block-save-task-input">
+                <button id="block-send-save-as-btn" >Enviar</button>
+                <button id="block-close-save-as-btn" class="block-close-btn">X</button>
+            </div>  
+            <div id="block-open-task-div">
+                <button id="block-close-open-task-btn" class="block-close-btn">X</button>
+                <select id="block-select-task">
+                  <option value="" hidden>Seleccionar</option>
+                </select>
+            </div> 
+            
+            <div id="block-delete-task-div">
+              <button id = "block-delete-task-close-btn" class="block-close-btn">X</button>
+              <select id="block-select-task-to-delete">
+                <option value="" hidden>Seleccionar</option>
+              </select>
+              <button id="block-delete-task-btn-2">Borrar</button>
+            </div>
+            </div>
+            
+        
+        
+        <!-- <div>
+            <input type="button" onclick="Conectar()" value="CONECTAR"/><br>
+            Nombre de la Tarea / Descripcion<br>
+            <input type="text" id="nombreTarea" style="width: 150px; ">
+            <input type="text" id="descripTarea" style="width: 150px; ">
+            <input type="button" value="Guardar Tarea" onclick="GuardarTarea()">
+            </br>
+            <select id="selTarea" style="width: 250px;  margin-left: 30px">
+            </select>
+            <input type="button" value="Actualizar Lista" onclick
+            ="ActualizarListaTareas()">
+            <input type="button" value="Ver Tarea" onclick="VerTarea()">
+            <input type="button" value="Actualizar Tarea" onclick="ActualizarTarea()">
+            <input type="button" value="Borrar Tarea" onclick="BorrarTarea()"></br>
+            <input type="button" value="EJECUTAR" onclick="EjecutarTarea()" style="width: 150px; height: 30px;  ">
+        </div> -->
+    
+        
+        <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none"> 
+          <category name="Logicos" colour="#5b80a5">
+            <block type="controls_if"></block>
+            <block type="logic_compare">
+              <field name="OP">EQ</field>
+            </block>
+            <block type="logic_operation">
+              <field name="OP">AND</field>
+            </block>
+            <block type="logic_negate"></block>
+            <block type="logic_boolean">
+              <field name="BOOL">TRUE</field>
+            </block>
+            <block type="logic_null"></block>
+            <block type="logic_ternary"></block>
+          </category>
+          <category name="Repetitivos" colour="#5ba55b">
+            <block type="controls_repeat_ext">
+              <value name="TIMES">
+                <shadow type="math_number">
+                  <field name="NUM">10</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="controls_whileUntil">
+              <field name="MODE">WHILE</field>
+            </block>
+            <block type="controls_for">
+              <field name="VAR" id="dv8k0/*0M_bMCaemqh);">i</field>
+              <value name="FROM">
+                <shadow type="math_number">
+                  <field name="NUM">1</field>
+                </shadow>
+              </value>
+              <value name="TO">
+                <shadow type="math_number">
+                  <field name="NUM">10</field>
+                </shadow>
+              </value>
+              <value name="BY">
+                <shadow type="math_number">
+                  <field name="NUM">1</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="controls_forEach">
+              <field name="VAR" id="(LiCqf]OD2Qk3{W|!J31">j</field>
+            </block>
+            <block type="controls_flow_statements">
+              <field name="FLOW">BREAK</field>
+            </block>
+          </category>
+          <category name="Movimientos" colour="#a5745b">
+            <block type="CXN2_move_joints">
+              <value name="JOINTS_1">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="JOINTS_2">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="JOINTS_3">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="JOINTS_4">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="JOINTS_5">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+                <value name="JOINTS_6">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+            </block>
+            <block type="CXN2_shift_pose">
+              <value name="SHIFT_POSE_VALUE">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+            </block>
+            <block type="CXN2_set_arm_max_speed">
+              <value name="SET_ARM_MAX_SPEED">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+            </block>
+            <block type="CXN2_sleep">
+              <value name="SLEEP_TIME">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+            </block>
+            <block type="CXN2_gripper">
+              <value name="GRIPPER">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+            </block>
+            <block type="CXN2_move_pose">
+              <value name="POSE_X">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="POSE_Y">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="POSE_Z">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="POSE_ROLL">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="POSE_PITCH">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+                <value name="POSE_YAW">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+            </block>
+            <block type="CXN2_move_line">
+              <value name="POSE_X">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="POSE_Y">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="POSE_Z">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="POSE_ROLL">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+              <value name="POSE_PITCH">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+                <value name="POSE_YAW">
+                  <shadow type="math_number">
+                    <field name="NUM">0</field>
+                  </shadow>
+                </value>
+            </block>    
+          </category>
+          <category name="Matematicos" colour="#5b67a5">
+            <block type="math_number">
+              <field name="NUM">0</field>
+            </block>
+            <block type="math_arithmetic">
+              <field name="OP">ADD</field>
+              <value name="A">
+                <shadow type="math_number">
+                  <field name="NUM">1</field>
+                </shadow>
+              </value>
+              <value name="B">
+                <shadow type="math_number">
+                  <field name="NUM">1</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="math_single">
+              <field name="OP">ROOT</field>
+              <value name="NUM">
+                <shadow type="math_number">
+                  <field name="NUM">9</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="math_trig">
+              <field name="OP">SIN</field>
+              <value name="NUM">
+                <shadow type="math_number">
+                  <field name="NUM">45</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="math_constant">
+              <field name="CONSTANT">PI</field>
+            </block>
+            <block type="math_number_property">
+              <mutation divisor_input="false"></mutation>
+              <field name="PROPERTY">EVEN</field>
+              <value name="NUMBER_TO_CHECK">
+                <shadow type="math_number">
+                  <field name="NUM">0</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="math_round">
+              <field name="OP">ROUND</field>
+              <value name="NUM">
+                <shadow type="math_number">
+                  <field name="NUM">3.1</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="math_on_list">
+              <mutation op="SUM"></mutation>
+              <field name="OP">SUM</field>
+            </block>
+            <block type="math_modulo">
+              <value name="DIVIDEND">
+                <shadow type="math_number">
+                  <field name="NUM">64</field>
+                </shadow>
+              </value>
+              <value name="DIVISOR">
+                <shadow type="math_number">
+                  <field name="NUM">10</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="math_constrain">
+              <value name="VALUE">
+                <shadow type="math_number">
+                  <field name="NUM">50</field>
+                </shadow>
+              </value>
+              <value name="LOW">
+                <shadow type="math_number">
+                  <field name="NUM">1</field>
+                </shadow>
+              </value>
+              <value name="HIGH">
+                <shadow type="math_number">
+                  <field name="NUM">100</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="math_random_int">
+              <value name="FROM">
+                <shadow type="math_number">
+                  <field name="NUM">1</field>
+                </shadow>
+              </value>
+              <value name="TO">
+                <shadow type="math_number">
+                  <field name="NUM">100</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="math_random_float"></block>
+          </category>
+          <category name="Texto" colour="#5ba58c">
+            <block type="text">
+              <field name="TEXT"></field>
+            </block>
+            <block type="text_join">
+              <mutation items="2"></mutation>
+            </block>
+            <block type="text_append">
+              <field name="VAR" id="=+-{u~pobtH{p5:zh1Tf">item</field>
+              <value name="TEXT">
+                <shadow type="text">
+                  <field name="TEXT"></field>
+                </shadow>
+              </value>
+            </block>
+            <block type="text_length">
+              <value name="VALUE">
+                <shadow type="text">
+                  <field name="TEXT">abc</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="text_isEmpty">
+              <value name="VALUE">
+                <shadow type="text">
+                  <field name="TEXT"></field>
+                </shadow>
+              </value>
+            </block>
+            <block type="text_indexOf">
+              <field name="END">FIRST</field>
+              <value name="VALUE">
+                <block type="variables_get">
+                  <field name="VAR" id="$)}1|:|Yz9vyLp(Ns{EL">text</field>
+                </block>
+              </value>
+              <value name="FIND">
+                <shadow type="text">
+                  <field name="TEXT">abc</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="text_charAt">
+              <mutation at="true"></mutation>
+              <field name="WHERE">FROM_START</field>
+              <value name="VALUE">
+                <block type="variables_get">
+                  <field name="VAR" id="$)}1|:|Yz9vyLp(Ns{EL">text</field>
+                </block>
+              </value>
+            </block>
+            <block type="text_getSubstring">
+              <mutation at1="true" at2="true"></mutation>
+              <field name="WHERE1">FROM_START</field>
+              <field name="WHERE2">FROM_START</field>
+              <value name="STRING">
+                <block type="variables_get">
+                  <field name="VAR" id="$)}1|:|Yz9vyLp(Ns{EL">text</field>
+                </block>
+              </value>
+            </block>
+            <block type="text_changeCase">
+              <field name="CASE">UPPERCASE</field>
+              <value name="TEXT">
+                <shadow type="text">
+                  <field name="TEXT">abc</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="text_trim">
+              <field name="MODE">BOTH</field>
+              <value name="TEXT">
+                <shadow type="text">
+                  <field name="TEXT">abc</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="text_print">
+              <value name="TEXT">
+                <shadow type="text">
+                  <field name="TEXT">abc</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="text_prompt_ext">
+              <mutation type="TEXT"></mutation>
+              <field name="TYPE">TEXT</field>
+              <value name="TEXT">
+                <shadow type="text">
+                  <field name="TEXT">abc</field>
+                </shadow>
+              </value>
+            </block>
+          </category>
+          <category name="Variables" colour="#a55b80" custom="VARIABLE"></category>
+          <category name="Funciones" colour="#995ba5" custom="PROCEDURE"></category>
+          <category name="Listas" colour="#745ba5">
+            <block type="lists_create_with">
+              <mutation items="0"></mutation>
+            </block>
+            <block type="lists_create_with">
+              <mutation items="3"></mutation>
+            </block>
+            <block type="lists_repeat">
+              <value name="NUM">
+                <shadow type="math_number">
+                  <field name="NUM">5</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="lists_length"></block>
+            <block type="lists_isEmpty"></block>
+            <block type="lists_indexOf">
+              <field name="END">FIRST</field>
+              <value name="VALUE">
+                <block type="variables_get">
+                  <field name="VAR" id="k$_auH%1^cL6atrau%68">list</field>
+                </block>
+              </value>
+            </block>
+            <block type="lists_getIndex">
+              <mutation statement="false" at="true"></mutation>
+              <field name="MODE">GET</field>
+              <field name="WHERE">FROM_START</field>
+              <value name="VALUE">
+                <block type="variables_get">
+                  <field name="VAR" id="k$_auH%1^cL6atrau%68">list</field>
+                </block>
+              </value>
+            </block>
+            <block type="lists_setIndex">
+              <mutation at="true"></mutation>
+              <field name="MODE">SET</field>
+              <field name="WHERE">FROM_START</field>
+              <value name="LIST">
+                <block type="variables_get">
+                  <field name="VAR" id="k$_auH%1^cL6atrau%68">list</field>
+                </block>
+              </value>
+            </block>
+            <block type="lists_getSublist">
+              <mutation at1="true" at2="true"></mutation>
+              <field name="WHERE1">FROM_START</field>
+              <field name="WHERE2">FROM_START</field>
+              <value name="LIST">
+                <block type="variables_get">
+                  <field name="VAR" id="k$_auH%1^cL6atrau%68">list</field>
+                </block>
+              </value>
+            </block>
+            <block type="lists_split">
+              <mutation mode="SPLIT"></mutation>
+              <field name="MODE">SPLIT</field>
+              <value name="DELIM">
+                <shadow type="text">
+                  <field name="TEXT">,</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="lists_sort">
+              <field name="TYPE">NUMERIC</field>
+              <field name="DIRECTION">1</field>
+            </block>
+          </category>
+        </xml>
+    </div>
+    <div id="user-div">
+      <div id="home-title-div">
+        <h1 id="user-title">CXN2</h1>
+      </div>
+        <div id="home-div-p">
+          <p id="user-p">Bienvenido!</p>
+        </div>
+        <div id="home-submit-div">
+          <input id= "ip-input" type="text" placeholder="Ingrese la direccion IP" value="192.168.1.195:9090">
+          <button id="submit-ip-btn">Enviar</button>
+        </div>
+    </div>
+    <div id="settings-div">
+      <button id="settings-coord-sists-btn" class="settings-main-btn">Coord. Sist.</button>
+      <button id="settings-points-btn" class="settings-main-btn">Puntos</button>
+      <button id="settings-tools-btn" class="settings-main-btn">Herramientas</button>
+      <button id="settings-ios-btn" class="settings-main-btn">Input / Output</button>
+    </div>
+    <div id="settings-coord-sists-div">
+      <div id="settings-coord-sists-title">
+        <h2>Sistemas De Coordenadas</h2>
+      </div>
+      <div id="settings-coord-sists-head">
+        <select name="" id="settings-coord-sist-select">
+          <option value="">PH1</option>
+          <option value="">PH2</option>
+        </select>
+      </div>
+      <div id="settings-coord-sists-body">
+        <div class="settings-coord-sists-container-esp" >
+          <h3>P0</h3>
+          <div class="settings-coord-sists-input-container">
+            <h4>X</h4>
+            <input type="number" id="settings-coord-sists-p0-x-input">
+          </div>
+          <div class="settings-coord-sists-input-container">
+            <h4>Y</h4>
+            <input type="number" id="settings-coord-sists-p0-y-input">
+          </div>
+          <div class="settings-coord-sists-input-container">
+            <h4>Z</h4>
+            <input type="number" id="settings-coord-sists-p0-z-input">
+          </div>
+          <button id="settings-coord-sists-set-actual-p0-btn">Traer</button>
+        </div>
+        <div class="settings-coord-sists-container">
+
+          <h3>P1</h3>
+          <div class="settings-coord-sists-input-container">
+            <h4>X</h4>
+            <input type="number" id="settings-coord-sists-p1-x-input">
+          </div>
+          <div class="settings-coord-sists-input-container">
+            <h4>Y</h4>
+            <input type="number" id="settings-coord-sists-p1-y-input">
+          </div>
+          <div class="settings-coord-sists-input-container">
+            <h4>Z</h4>
+            <input type="number" id="settings-coord-sists-p1-z-input">
+          </div>
+          <button id="settings-coord-sists-set-actual-p1-btn">Traer</button>
+        </div>
+
+        <div class="settings-coord-sists-container">
+          <h3>P2</h3>
+          <div class="settings-coord-sists-input-container">
+            <h4>X</h4>
+            <input type="number" id="settings-coord-sists-p2-x-input">
+          </div>
+          <div class="settings-coord-sists-input-container">
+            <h4>Y</h4>
+            <input type="number" id="settings-coord-sists-p2-y-input">
+          </div>
+          <div class="settings-coord-sists-input-container">
+            <h4>Z</h4>
+            <input type="number" id="settings-coord-sists-p2-z-input">
+          </div>
+          <button id="settings-coord-sists-set-actual-p2-btn">Traer</button>
+        </div>
+      </div>
+      <div id="settings-coord-sists-bot">
+        <button id="settings-coord-sists-create">Crear</button>
+        <button id="settings-coord-sists-delete">Borrar</button>
+        <button id="settings-coord-sists-update">Actualizar</button>
+      </div>
+    </div>
+    <div id="settings-points-div">
+      <div id="settings-points-title">
+        <h2>Gestion de Puntos</h2>
+      </div>
+      <div id="settings-points-head">
+        
+        <h3 id="settings-points-selected-h3">Nuevo Punto</h3>
+      </div>
+      <div id="settings-points-body">
+        <div class="settings-points-container" >
+          <h3>Articulares</h3>
+          <div class="settings-points-input-container">
+            <h4>Q1</h4>
+            <input type="number" id="settings-points-q1-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Q2</h4>
+            <input type="number" id="settings-points-q2-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Q3</h4>
+            <input type="number" id="settings-points-q3-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Q4</h4>
+            <input type="number" id="settings-points-q4-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Q5</h4>
+            <input type="number" id="settings-points-q5-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Q6</h4>
+            <input type="number" id="settings-points-q6-input">
+          </div>
+        </div>
+        <div class="settings-points-container">
+          <h3>Espaciales</h3>
+          <div class="settings-points-input-container">
+            <h4>X</h4>
+            <input type="number" id="settings-points-x-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Y</h4>
+            <input type="number" id="settings-points-y-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Z</h4>
+            <input type="number" id="settings-points-z-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Rx</h4>
+            <input type="number" id="settings-points-rx-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Ry</h4>
+            <input type="number" id="settings-points-ry-input">
+          </div>
+          <div class="settings-points-input-container">
+            <h4>Rz</h4>
+            <input type="number" id="settings-points-rz-input">
+          </div>
+        </div>
+      </div>
+      <div id="settings-points-bot">
+        <button id="settings-points-create">Crear</button>
+        <button id="settings-points-delete">Borrar</button>
+        <button id="settings-points-open">Abrir</button>
+        <button id="settings-points-update">Actualizar</button>
+        <button id="settings-points-pos-act">Traer Punto Actual</button>
+      </div>
+      <div id="settings-points-popup-menu-div">
+        <button id="settings-points-popup-menu-close">X</button>
+        <div id="settings-points-popup-new-div">
+          <input type="text" id="settings-points-popup-new-name" placeholder="Nombre">
+          <button id="settings-points-popup-new-send">Guardar</button>
+        </div>
+        <div id="settings-points-popup-open-div">
+          <select name="" id="settings-points-select">
+            <option hidden value="">Seleccionar</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="tools-div">
+      <div id="prog-text-title">
+        <h3 id="prog-text-title-h3">Nueva Tarea</h3>
+    </div>
+    <div id="prog-text-code-container">
+        <pre id="prog-text-editor"></pre>
+    </div>
+    <div id="prog-text-bot">
+        <button id="prog-text-new-task-btn" class="block-bottom-btn">Nuevo</button>
+        <button id="prog-text-save-task-btn" class="block-bottom-btn">Guardar</button>
+        <button id="prog-text-delete-task-btn" class="block-bottom-btn">Borrar</button>
+        <button id="prog-text-open-task-btn" class="block-bottom-btn">Abrir</button>
+        <button id="prog-text-run-task-btn" class="block-bottom-btn">Ejecutar</button>
+        <button id="prog-text-stop-task-btn"class="block-bottom-btn">Parar</button>
+        <div id="prog-text-save-div">
+          <button id="prog-text-save-close-btn" class="block-close-btn">X</button>
+            <button id="prog-text-save-as-task-btn" class="block-save-btn">Guardar Como</button>
+            <button id="prog-text-overwrite-task-btn" class="block-save-btn">Guardar</button>
+            
+        </div>
+        <div id="prog-text-save-as-task-div">  
+            <input type="text" name=""  placeholder="Nombre" id="prog-text-save-task-name" class="block-save-task-input">
+            <button id="prog-text-send-save-as-btn" >Enviar</button>
+            <button id="prog-text-close-save-as-btn" class="block-close-btn">X</button>
+        </div>  
+        <div id="prog-text-open-task-div">
+            <button id="prog-text-close-open-task-btn" class="block-close-btn">X</button>
+            <select id="prog-text-select-task">
+              <option value="" hidden>Seleccionar</option>
+            </select>
+        </div> 
+        
+        <div id="prog-text-delete-task-div">
+          <button id = "prog-text-delete-task-close-btn" class="block-close-btn">X</button>
+          <select id="prog-text-select-task-to-delete">
+            <option value="" hidden>Seleccionar</option>
+          </select>
+          <button id="prog-text-delete-task-btn-2">Borrar</button>
+        </div>
+        </div>
+    </div>
+    </div>
+    </div>
+</div>
+<script src="http://static.robotwebtools.org/roslibjs/0.20.0/roslib.js"></script>
+  
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"
+    integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
+
+
+
+
